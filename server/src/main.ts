@@ -29,7 +29,11 @@ const MONGO_USERNAME = process.env.MONGO_USERNAME
 const MONGO_PASSWORD = process.env.MONGO_PASSWORD
 const MONGO_DATABASE = process.env.MONGO_DATABASE
 
-app.use(cors())
+app.use(
+	cors({
+		origin: '*'
+	})
+)
 app.use(
 	bodyParser.urlencoded({
 		extended: true
