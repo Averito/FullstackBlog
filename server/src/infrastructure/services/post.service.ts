@@ -9,51 +9,61 @@ import { HttpException } from '../../api/errors/httpException'
 import { NextFunction } from 'express'
 
 class PostService {
-	public async getAll(pageSize: number, page: number) {
-		const posts = await Post.find({})
-			.skip(pageSize * (page - 1))
-			.limit(pageSize)
-			.populate('user')
+	public async getAll(pageSize: number, page: number, next: NextFunction) {
+		try {
+			const posts = await Post.find({})
+				.skip(pageSize * (page - 1))
+				.limit(pageSize)
+				.populate('user')
 
-		return {
-			posts: posts || [],
-			total: await Post.countDocuments({})
+			return {
+				posts: posts || [],
+				total: await Post.countDocuments({})
+			}
+		} catch (error) {
+			next(error)
 		}
 	}
 
 	public async create(
 		createPostDto: CreatePostDto,
 		media: UploadedFile | UploadedFile[],
-		currentUser: IUser
+		currentUser: IUser,
+		next: NextFunction
 	) {
-		let mediaArray: UploadedFile[] = []
+		try {
+			let mediaArray: UploadedFile[] = []
 
-		if (Array.isArray(media)) mediaArray = [...media]
-		else mediaArray = [media]
-		if (!media) mediaArray = []
+			if (Array.isArray(media)) mediaArray = [...media]
+			else mediaArray = [media]
+			if (!media) mediaArray = []
 
-		const postMedia: string[] = []
+			const postMedia: string[] = []
 
-		for (const file of mediaArray) {
-			const fileName = await this.saveFile(file)
+			for (const file of mediaArray) {
+				const fileName = await this.saveFile(file, next)
+				if (!fileName) continue
 
-			postMedia.push(fileName)
-		}
+				postMedia.push(fileName)
+			}
 
-		const post = new Post({
-			title: createPostDto.title,
-			body: createPostDto.body,
-			images: postMedia,
-			user: currentUser._id
-		})
+			const post = new Post({
+				title: createPostDto.title,
+				body: createPostDto.body,
+				images: postMedia,
+				user: currentUser._id
+			})
 
-		await post.save()
+			await post.save()
 
-		const createdPost = await Post.findOne({ _id: post._id }).populate('user')
+			const createdPost = await Post.findOne({ _id: post._id }).populate('user')
 
-		return {
-			post: createdPost,
-			total: await Post.countDocuments({})
+			return {
+				post: createdPost,
+				total: await Post.countDocuments({})
+			}
+		} catch (error) {
+			next(error)
 		}
 	}
 
@@ -74,7 +84,8 @@ class PostService {
 
 			const newMedia: string[] = []
 			for (const file of mediaArray) {
-				const fileName = await this.saveFile(file)
+				const fileName = await this.saveFile(file, next)
+				if (!fileName) continue
 
 				newMedia.push(fileName)
 			}
@@ -98,7 +109,7 @@ class PostService {
 			const post = await Post.findOne({ _id: postId, user: currentUser._id })
 			if (!post) throw new HttpException('Post not found', 400)
 
-			await this.removeFile(filename)
+			await this.removeFile(filename, next)
 
 			post.images = post.images.filter(image => image !== filename)
 			await post.save()
@@ -114,7 +125,7 @@ class PostService {
 			const post = await Post.findOne({ _id: postId, user: currentUser._id })
 			if (!post) throw new HttpException('Post not found', 400)
 
-			post.images.forEach(image => this.removeFile(image))
+			post.images.forEach(image => this.removeFile(image, next))
 
 			return {
 				post: await Post.findOneAndRemove({ _id: postId }),
@@ -147,20 +158,29 @@ class PostService {
 		}
 	}
 
-	private async saveFile(file: UploadedFile) {
-		const extension = file.name.split('.').at(-1)
-		const fileName = `${v4()}.${extension}`
+	private async saveFile(file: UploadedFile, next: NextFunction) {
+		try {
+			console.log('file', file)
+			const extension = file?.mimetype?.split('/')?.at(-1) || 'jpg'
+			const fileName = `${v4()}.${extension}`
 
-		await file.mv(`./uploads/media/${fileName}`)
+			await file.mv(`./uploads/media/${fileName}`)
 
-		return fileName
+			return fileName
+		} catch (error) {
+			next(error)
+		}
 	}
 
-	private async removeFile(fileName: string) {
-		fs.unlink(`./uploads/media/${fileName}`, error => {
-			if (!error) return
-			throw new HttpException(error.message, 500)
-		})
+	private async removeFile(fileName: string, next: NextFunction) {
+		try {
+			fs.unlink(`./uploads/media/${fileName}`, error => {
+				if (!error) return
+				throw new HttpException(error.message, 500)
+			})
+		} catch (error) {
+			next(error)
+		}
 	}
 }
 

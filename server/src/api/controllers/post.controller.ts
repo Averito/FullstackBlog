@@ -4,21 +4,38 @@ import { AuthorizeRequest } from '../middlwares/jwt-access-middleware/jwtAccess.
 import { CreatePostDto, EditPostDto, RemoveImageFromPostDto } from '../DTO/post'
 import { IPost } from '../../domain/models/post'
 
-export const getAllPosts = async (req: Request, res: Response) => {
+export const getAllPosts = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	const pageSize = req.query.pageSize as string
 	const page = req.query.page as string
 
 	res.json(
-		await postService.getAll(parseInt(pageSize) || 20, parseInt(page) || 1)
+		await postService.getAll(
+			parseInt(pageSize) || 20,
+			parseInt(page) || 1,
+			next
+		)
 	)
 }
 
-export const createPost = async (req: Request, res: Response) => {
+export const createPost = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	const media = (req.files || {}).media
 	const currentUser = (req as AuthorizeRequest).user
 
 	res.json(
-		await postService.create(req.body as CreatePostDto, media, currentUser)
+		await postService.create(
+			req.body as CreatePostDto,
+			media,
+			currentUser,
+			next
+		)
 	)
 }
 

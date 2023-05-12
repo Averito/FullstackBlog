@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\"",
     "build": "concurrently \"npm run client:build\" \"npm run server:build\"",
+    "start": "concurrently \"npm run client:start\" \"npm run server:start\"",
     "lint": "npx eslint --fix \"./{client,server}/**/*.ts\"",
     "install:project": "concurrently \"npm run client:install\" \"npm run server:install\"",
     "server:dev": "cd server && npm run dev",
