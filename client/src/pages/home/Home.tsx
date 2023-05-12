@@ -33,12 +33,14 @@ export const Home: FC = observer(() => {
 						))}
 					</div>
 					<div className={styles.pagination}>
-						<Pagination
-							pageSize={PAGE_SIZE}
-							onChange={onChangeCurrentPage}
-							total={postsStore.total}
-							current={currentPage}
-						/>
+						{postsStore.posts.length > 0 && (
+							<Pagination
+								pageSize={PAGE_SIZE}
+								onChange={onChangeCurrentPage}
+								total={postsStore.total}
+								current={currentPage}
+							/>
+						)}
 					</div>
 				</div>
 			</main>
