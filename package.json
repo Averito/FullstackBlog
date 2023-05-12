@@ -1,0 +1,25 @@
+{
+  "name": "welbex-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./server/dist/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run client:dev\" \"npm run server:dev\"",
+    "build": "concurrently \"npm run client:build\" \"npm run server:build\"",
+    "lint": "npx eslint --fix \"./{client,server}/**/*.ts\"",
+    "install:project": "concurrently \"npm run client:install\" \"npm run server:install\"",
+    "server:dev": "cd server && npm run dev",
+    "server:start": "cd server && npm run start",
+    "server:build": "cd server && npm run build",
+    "server:install": "cd server && npm i",
+    "client:dev": "cd client && npm run dev",
+    "client:start": "cd client && npm run preview",
+    "client:build": "cd client && npm run build",
+    "client:install": "cd client && npm i"
+  },
+  "author": "Averito",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}

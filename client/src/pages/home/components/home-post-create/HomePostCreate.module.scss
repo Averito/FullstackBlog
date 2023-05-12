@@ -1,0 +1,49 @@
+.wrapper {
+  box-shadow: 0 0 9px -2px rgba(34, 60, 80, 0.2);
+  min-height: 120px;
+  padding: 15px;
+  border-radius: 12px;
+}
+
+.input {
+  width: 100%;
+}
+
+.textarea {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 10px 0;
+}
+
+.buttonCancel {
+  margin-right: 15px;
+}
+
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  opacity: 0;
+  box-shadow: 0 0 9px -2px rgba(34, 60, 80, 0.2);
+  padding: 15px;
+  border-radius: 12px;
+  width: 100%;
+  gap: 10px;
+
+  &.galleryShow {
+    opacity: 1;
+  }
+}
+
+.image {
+  cursor: pointer;
+  max-width: 120px;
+  max-height: 90px;
+  border-radius: 8px;
+  overflow: hidden;
+}
