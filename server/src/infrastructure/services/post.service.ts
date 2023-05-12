@@ -160,8 +160,8 @@ class PostService {
 
 	private async saveFile(file: UploadedFile, next: NextFunction) {
 		try {
-			console.log('file', file)
-			const extension = file?.mimetype?.split('/')?.at(-1) || 'jpg'
+			const slicedMimetype = file?.mimetype?.split('/')
+			const extension = slicedMimetype[slicedMimetype.length - 1] || 'jpg'
 			const fileName = `${v4()}.${extension}`
 
 			await file.mv(`./uploads/media/${fileName}`)
