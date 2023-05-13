@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/main.ts",
   "scripts": {
-    "build": "npm run swagger && npx tsc",
+    "build": "npx tsc",
     "start": "node dist/main.js",
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/main.js\" \"nodemon -q tsoa spec-and-routes\"",
     "swagger": "tsoa spec-and-routes"
