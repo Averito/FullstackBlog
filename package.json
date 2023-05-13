@@ -12,6 +12,7 @@
     "server:dev": "cd server && npm run dev",
     "server:start": "cd server && npm run start",
     "server:build": "cd server && npm run build",
+    "server:swagger": "cd server && npm run swagger",
     "server:install": "cd server && npm i",
     "client:dev": "cd client && npm run dev",
     "client:start": "cd client && npm run preview",
@@ -21,6 +22,10 @@
   "author": "Averito",
   "license": "ISC",
   "devDependencies": {
+    "@types/swagger-ui-express": "^4.1.3",
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "tsoa": "^5.1.1"
   }
 }

@@ -1,0 +1,42 @@
+{
+  "entryFile": "./src/main.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["./src/api/controllers/*.controller.ts"],
+  "spec": {
+    "outputDirectory": "dist",
+    "specVersion": 3,
+    "securityDefinitions": {
+      "api_key":  {
+        "type": "basic",
+        "name": "access_token",
+        "in": "header"
+      }
+    },
+    "basePath": "/",
+    "spec": true
+  },
+  "swagger": {
+    "outputDirectory": "./dist",
+    "entryFile": "./src/main.ts",
+    "noImplicitAdditionalProperties": "silently-remove-extras",
+    "spec": {
+      "servers": [
+        {
+          "url": "http://192.168.1.55:5000",
+          "description": "LocalHost"
+        },
+        {
+          "url": "https://welbex-blog-api.onrender.com",
+          "description": "Production server"
+        }
+      ]
+    },
+    "specVersion": 3,
+    "yaml": true
+  },
+  "routes": {
+    "middleware": "express",
+    "routesDir": "dist",
+    "basePath": "/docs"
+  }
+}

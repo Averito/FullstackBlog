@@ -1,24 +1,15 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import bodyParser from 'body-parser'
 import fileUploader from 'express-fileupload'
 import morgan from 'morgan'
 import cors from 'cors'
+import swaggerUi from 'swagger-ui-express'
 import * as mongoose from 'mongoose'
 import * as dotenv from 'dotenv'
 import 'colors'
 
 import { errorHandlerMiddleware, jwtAccessMiddleware } from './api/middlwares'
-import { registration, login } from './api/controllers/auth.controller'
-import {
-	addImagesToPost,
-	createPost,
-	editPost,
-	getAllPosts,
-	getPostImage,
-	removeImageFromPost,
-	removePost
-} from './api/controllers/post.controller'
-import { getMe } from './api/controllers/user.controller'
+import { router } from './api/router'
 
 dotenv.config()
 
@@ -44,18 +35,13 @@ app.use(morgan('tiny'))
 app.use(fileUploader({ createParentPath: true }))
 app.use(jwtAccessMiddleware)
 
-app.post('/auth/registration', registration)
-app.post('/auth/login', login)
+app.use('/docs', swaggerUi.serve, async (_: Request, res: Response) => {
+	return res.send(
+		swaggerUi.generateHTML(await import('./../dist/swagger.json'))
+	)
+})
 
-app.get('/post/all', getAllPosts)
-app.post('/post/create', createPost)
-app.delete('/post/remove/:postId', removePost)
-app.patch('/post/edit', editPost)
-app.get('/post/image/:imageName', getPostImage)
-app.patch('/post/images/remove/:postId', removeImageFromPost)
-app.patch('/post/images/add/:postId', addImagesToPost)
-
-app.get('/user/me', getMe)
+app.use(router)
 
 app.listen(port, () => {
 	try {

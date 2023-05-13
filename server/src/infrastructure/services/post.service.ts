@@ -4,183 +4,151 @@ import * as fs from 'fs'
 import { Post } from '../../domain/models'
 import { CreatePostDto, EditPostDto } from '../../api/DTO/post'
 import { UploadedFile } from 'express-fileupload'
-import { IUser } from '../../domain/models/user'
 import { HttpException } from '../../api/errors/httpException'
-import { NextFunction } from 'express'
+import { CreatePostResponseDto } from '../../api/DTO/post/createPostResponse.dto'
+import { IPost } from '../../domain/models/post'
+import { RemovePostResponseDto } from '../../api/DTO/post/removePostResponse.dto'
 
-class PostService {
-	public async getAll(pageSize: number, page: number, next: NextFunction) {
-		try {
-			const posts = await Post.find({})
-				.skip(pageSize * (page - 1))
-				.limit(pageSize)
-				.populate('user')
+export class PostService {
+	public async getAll(pageSize: number, page: number) {
+		const posts = await Post.find({})
+			.skip(pageSize * (page - 1))
+			.limit(pageSize)
+			.populate('user')
 
-			return {
-				posts: posts || [],
-				total: await Post.countDocuments({})
-			}
-		} catch (error) {
-			next(error)
+		return {
+			posts: posts || [],
+			total: await Post.countDocuments({})
 		}
 	}
 
 	public async create(
 		createPostDto: CreatePostDto,
 		media: UploadedFile | UploadedFile[],
-		currentUser: IUser,
-		next: NextFunction
-	) {
-		try {
-			let mediaArray: UploadedFile[] = []
+		currentUserId: string
+	): Promise<CreatePostResponseDto> {
+		let mediaArray: UploadedFile[] = []
 
-			if (Array.isArray(media)) mediaArray = [...media]
-			else mediaArray = [media]
-			if (!media) mediaArray = []
+		if (Array.isArray(media)) mediaArray = [...media]
+		else mediaArray = [media]
+		if (!media) mediaArray = []
 
-			const postMedia: string[] = []
+		const postMedia: string[] = []
 
-			for (const file of mediaArray) {
-				const fileName = await this.saveFile(file, next)
-				if (!fileName) continue
+		for (const file of mediaArray) {
+			const fileName = await this.saveFile(file)
+			if (!fileName) continue
 
-				postMedia.push(fileName)
-			}
+			postMedia.push(fileName)
+		}
 
-			const post = new Post({
-				title: createPostDto.title,
-				body: createPostDto.body,
-				images: postMedia,
-				user: currentUser._id
-			})
+		const post = new Post({
+			title: createPostDto.title,
+			body: createPostDto.body,
+			images: postMedia,
+			user: currentUserId
+		})
 
-			await post.save()
+		await post.save()
 
-			const createdPost = await Post.findOne({ _id: post._id }).populate('user')
+		const createdPost = await Post.findOne({ _id: post._id }).populate('user')
 
-			return {
-				post: createdPost,
-				total: await Post.countDocuments({})
-			}
-		} catch (error) {
-			next(error)
+		return {
+			post: createdPost as IPost,
+			total: await Post.countDocuments({})
 		}
 	}
 
 	public async addFilesToPost(
 		postId: string,
 		media: UploadedFile | UploadedFile[],
-		currentUser: IUser,
-		next: NextFunction
-	) {
-		try {
-			const post = await Post.findOne({ _id: postId, user: currentUser._id })
-			if (!post) throw new HttpException('Post not found', 400)
+		currentUserId: string
+	): Promise<IPost> {
+		const post = await Post.findOne({ _id: postId, user: currentUserId })
+		if (!post) throw new HttpException('Post not found', 400)
 
-			let mediaArray: UploadedFile[] = []
+		let mediaArray: UploadedFile[] = []
 
-			if (Array.isArray(media)) mediaArray = [...media]
-			else mediaArray = [media]
+		if (Array.isArray(media)) mediaArray = [...media]
+		else mediaArray = [media]
 
-			const newMedia: string[] = []
-			for (const file of mediaArray) {
-				const fileName = await this.saveFile(file, next)
-				if (!fileName) continue
+		const newMedia: string[] = []
+		for (const file of mediaArray) {
+			const fileName = await this.saveFile(file)
+			if (!fileName) continue
 
-				newMedia.push(fileName)
-			}
-
-			post.images = [...post.images, ...newMedia]
-			await post.save()
-
-			return post
-		} catch (error) {
-			next(error)
+			newMedia.push(fileName)
 		}
+
+		post.images = [...post.images, ...newMedia]
+		await post.save()
+
+		return post
 	}
 
 	public async removeFileFromPost(
 		postId: string,
 		filename: string,
-		currentUser: IUser,
-		next: NextFunction
-	) {
-		try {
-			const post = await Post.findOne({ _id: postId, user: currentUser._id })
-			if (!post) throw new HttpException('Post not found', 400)
+		currentUserId: string
+	): Promise<IPost> {
+		const post = await Post.findOne({ _id: postId, user: currentUserId })
+		if (!post) throw new HttpException('Post not found', 400)
 
-			await this.removeFile(filename, next)
+		await this.removeFile(filename)
 
-			post.images = post.images.filter(image => image !== filename)
-			await post.save()
+		post.images = post.images.filter(image => image !== filename)
+		await post.save()
 
-			return post
-		} catch (error) {
-			next(error)
-		}
+		return post
 	}
 
-	public async remove(postId: string, currentUser: IUser, next: NextFunction) {
-		try {
-			const post = await Post.findOne({ _id: postId, user: currentUser._id })
-			if (!post) throw new HttpException('Post not found', 400)
+	public async remove(
+		postId: string,
+		currentUserId: string
+	): Promise<RemovePostResponseDto> {
+		const post = await Post.findOne({ _id: postId, user: currentUserId })
+		if (!post) throw new HttpException('Post not found', 400)
 
-			post.images.forEach(image => this.removeFile(image, next))
+		post.images.forEach(image => this.removeFile(image))
 
-			return {
-				post: await Post.findOneAndRemove({ _id: postId }),
-				total: await Post.countDocuments({})
-			}
-		} catch (err) {
-			next(err)
+		return {
+			post: (await Post.findOneAndRemove({ _id: postId })) as IPost,
+			total: await Post.countDocuments({})
 		}
 	}
 
 	public async edit(
 		editPostDto: EditPostDto,
-		currentUser: IUser,
-		next: NextFunction
-	) {
-		try {
-			const post = await Post.findOne({
-				_id: editPostDto.postId,
-				user: currentUser._id
-			})
-			if (!post) throw new HttpException('Post not found', 400)
+		currentUserId: string
+	): Promise<IPost> {
+		const post = await Post.findOne({
+			_id: editPostDto.postId,
+			user: currentUserId
+		})
+		if (!post) throw new HttpException('Post not found', 400)
 
-			if (editPostDto.title !== undefined) post.title = editPostDto.title
-			if (editPostDto.body !== undefined) post.body = editPostDto.body
+		if (editPostDto.title !== undefined) post.title = editPostDto.title
+		if (editPostDto.body !== undefined) post.body = editPostDto.body
 
-			await post.save()
-			return post
-		} catch (err) {
-			next(err)
-		}
+		await post.save()
+		return post
 	}
 
-	private async saveFile(file: UploadedFile, next: NextFunction) {
-		try {
-			const slicedMimetype = file?.mimetype?.split('/')
-			const extension = slicedMimetype[slicedMimetype.length - 1] || 'jpg'
-			const fileName = `${v4()}.${extension}`
+	private async saveFile(file: UploadedFile): Promise<string> {
+		const slicedMimetype = file?.mimetype?.split('/')
+		const extension = slicedMimetype[slicedMimetype.length - 1] || 'jpg'
+		const fileName = `${v4()}.${extension}`
 
-			await file.mv(`./uploads/media/${fileName}`)
+		await file.mv(`./uploads/media/${fileName}`)
 
-			return fileName
-		} catch (error) {
-			next(error)
-		}
+		return fileName
 	}
 
-	private async removeFile(fileName: string, next: NextFunction) {
-		try {
-			fs.unlink(`./uploads/media/${fileName}`, error => {
-				if (!error) return
-				throw new HttpException(error.message, 500)
-			})
-		} catch (error) {
-			next(error)
-		}
+	private async removeFile(fileName: string): Promise<void> {
+		fs.unlink(`./uploads/media/${fileName}`, error => {
+			if (!error) return
+			throw new HttpException(error.message, 500)
+		})
 	}
 }
 

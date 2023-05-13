@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/main.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/main.js\""
+    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/main.js\" \"nodemon -q tsoa spec-and-routes\"",
+    "swagger": "tsoa spec-and-routes"
   },
   "author": "Averito",
   "license": "ISC",

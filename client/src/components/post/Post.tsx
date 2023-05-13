@@ -39,6 +39,7 @@ export const Post: FC<PostProps> = observer(({ post, messageApi }) => {
 
 	const closeEditMode = () => {
 		setEditMode(false)
+		resetData()
 	}
 
 	const removeImage = (image: string): MouseEventHandler<HTMLImageElement> => {
