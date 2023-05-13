@@ -46,6 +46,7 @@
       "error", 25
     ],
     "no-unused-vars": 0,
-    "no-useless-catch": 0
+    "no-useless-catch": 0,
+    "@typescript-eslint/ban-ts-comment": 0
   }
 }

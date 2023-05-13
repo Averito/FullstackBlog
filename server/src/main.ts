@@ -37,6 +37,7 @@ app.use(jwtAccessMiddleware)
 
 app.use('/docs', swaggerUi.serve, async (_: Request, res: Response) => {
 	return res.send(
+		// @ts-ignore
 		swaggerUi.generateHTML(await import('./../dist/swagger.json'))
 	)
 })
