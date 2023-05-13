@@ -147,7 +147,7 @@ export class PostService {
 	private async removeFile(fileName: string): Promise<void> {
 		fs.unlink(`./uploads/media/${fileName}`, error => {
 			if (!error) return
-			throw new HttpException(error.message, 500)
+			console.error(error.message)
 		})
 	}
 }
